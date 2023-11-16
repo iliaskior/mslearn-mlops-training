@@ -27,18 +27,20 @@ def main(args):
 
 
 def split_data(df):
-    X, y = (
-        df[
-        ['Pregnancies', 
-         'PlasmaGlucose', 
-         'DiastolicBloodPressure', 
-         'TricepsThickness', 
-         'SerumInsulin', 
-         'BMI', 
-         'DiabetesPedigree', 
-         'Age']].values, 
-         df['Diabetic'].values
-        )
+
+    clms = [
+        'Pregnancies',
+        'PlasmaGlucose',
+        'DiastolicBloodPressure',
+        'TricepsThickness',
+        'SerumInsulin',
+        'BMI',
+        'DiabetesPedigree',
+        'Age'
+    ]
+
+    X, y = df[clms].values, df['Diabetic'].values
+    
     X_train, X_test, y_train, y_test = train_test_split(
         X, 
         y, 
@@ -59,7 +61,8 @@ def get_csvs_df(path):
 
 def train_model(reg_rate, X_train, X_test, y_train, y_test):
     # train model
-    model = LogisticRegression(C=1/reg_rate, solver="liblinear").fit(X_train, y_train)
+    model = LogisticRegression(C=1/reg_rate, solver="liblinear")
+    model.fit(X_train, y_train)
 
     return model
 
