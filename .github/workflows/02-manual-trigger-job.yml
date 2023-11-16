@@ -1,18 +1,25 @@
+# Define the name of the GitHub Actions workflow
 name: Deploy
 
+# Define the events that trigger the workflow
 on:
-  workflow_dispatch:
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:  # Manually triggered through GitHub UI
+  pull_request:      # Trigger on pull requests targeting specified branches
+    branches: [main]
 
+# Define environment variables
 env:
-  workspace-name: diabetes_challenge_ws # name of the Azure Machine Learning workspace
-  resource-group: diabetes_challenge_rg # name of the Azure resource group
+  workspace-name: diabetes_challenge_ws # Name of the Azure Machine Learning workspace
+  resource-group: diabetes_challenge_rg # Name of the Azure resource group
 
+# Define permissions for the workflow
 permissions:
   id-token: write
   contents: read
 
+# Define individual jobs in the workflow
+
+# Job for linting code
 jobs:
   linting:
     name: linting
@@ -20,17 +27,26 @@ jobs:
     steps:
     - name: Check out repo
       uses: actions/checkout@main
+      # Check out the repository to the runner's workspace
+    
     - name: Use Python version 3.8
       uses: actions/setup-python@v3
       with:
         python-version: '3.8'
+        # Set up the Python version to 3.8 for subsequent steps
+    
     - name: Install Flake8
       run: |
         python -m pip install flake8
+        # Install Flake8 linter for Python code quality checks
+        
     - name: Run linting tests
       run: | 
         flake8 src/model/
+        # Run Flake8 on the 'src/model/' directory to perform linting checks
+        
 
+  # Job for running unit tests
   unit-test:
     name: unit-test
     runs-on: ubuntu-latest
@@ -38,29 +54,46 @@ jobs:
     steps:
     - name: Check out repo
       uses: actions/checkout@main
+      # Check out the repository to the runner's workspace
+    
     - name: Use Python version 3.8
       uses: actions/setup-python@v3
       with:
         python-version: '3.8'
+        # Set up the Python version to 3.8 for subsequent steps
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt 
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Upgrade pip and install project dependencies from 'requirements.txt' file
+        
     - name: Run unit tests
       run: | 
         pytest tests/test_train.py
+        # Run unit tests using pytest on the 'tests/test_train.py' file
 
+
+  # Job for training the model using Azure ML
   train:
     runs-on: ubuntu-latest
+    needs: [unit-test]
     steps:
     - name: Check out repo
       uses: actions/checkout@main
+      # Check out the repository to the runner's workspace
+    
     - name: Install az ml extension
       run: az extension add -n ml -y
+      # Install the Azure Machine Learning extension for Azure CLI
+    
     - name: 'Az CLI login'
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
+        # Log in to Azure using Azure CLI with the specified credentials stored in secrets
+    
     - name: Trigger Azure ML job
       run: az ml job create --file src/job.yml --workspace-name ${{ env.workspace-name }} --resource-group ${{ env.resource-group }}
+      # Trigger an Azure ML job using the specified configuration file, workspace, and resource group
