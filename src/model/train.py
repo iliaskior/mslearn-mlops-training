@@ -24,6 +24,7 @@ def main(args):
 
     # end MLflow run
     mlflow.end_run()
+    
 
 def split_data(df):
     X, y = df[['Pregnancies','PlasmaGlucose','DiastolicBloodPressure','TricepsThickness','SerumInsulin','BMI','DiabetesPedigree','Age']].values, df['Diabetic'].values
